@@ -11,6 +11,7 @@ interface Task {
   text: string;
   completed: boolean;
   createdAt: string;
+  startDate: string;
   category: string;
   priority: Priority;
   dueDate: string;
@@ -41,6 +42,10 @@ const normalizeTask = (task: any): Task => ({
     typeof task.createdAt === 'string'
       ? task.createdAt
       : new Date().toISOString(),
+  startDate:
+    typeof task.startDate === 'string' && task.startDate
+      ? task.startDate
+      : '2026-02-07',
   category: typeof task.category === 'string' ? task.category : 'General',
   priority:
     task.priority === 'alta' || task.priority === 'media' || task.priority === 'baja'
@@ -56,6 +61,7 @@ export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [input, setInput] = useState('');
   const [category, setCategory] = useState('General');
+  const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<Priority>('media');
   const [tagsInput, setTagsInput] = useState('');
@@ -69,6 +75,7 @@ export default function TaskManager() {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editStartDate, setEditStartDate] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
   const [editPriority, setEditPriority] = useState<Priority>('media');
   const [editTags, setEditTags] = useState('');
@@ -119,6 +126,11 @@ export default function TaskManager() {
       return;
     }
 
+    if (!startDate) {
+      alert('Por favor, ingresa una fecha de inicio');
+      return;
+    }
+
     const tags = tagsInput
       .split(',')
       .map((tag) => tag.trim())
@@ -129,6 +141,7 @@ export default function TaskManager() {
       text: input.trim(),
       completed: false,
       createdAt: new Date().toISOString(),
+      startDate,
       category: category.trim() || 'General',
       priority,
       dueDate,
@@ -138,6 +151,7 @@ export default function TaskManager() {
     setTasks([newTask, ...tasks]);
     setInput('');
     setCategory('General');
+    setStartDate('');
     setDueDate('');
     setPriority('media');
     setTagsInput('');
@@ -159,6 +173,7 @@ export default function TaskManager() {
     setEditingTaskId(task.id);
     setEditText(task.text);
     setEditCategory(task.category);
+    setEditStartDate(task.startDate);
     setEditDueDate(task.dueDate);
     setEditPriority(task.priority);
     setEditTags(task.tags.join(', '));
@@ -168,6 +183,7 @@ export default function TaskManager() {
     setEditingTaskId(null);
     setEditText('');
     setEditCategory('');
+    setEditStartDate('');
     setEditDueDate('');
     setEditPriority('media');
     setEditTags('');
@@ -191,6 +207,7 @@ export default function TaskManager() {
               ...task,
               text: editText.trim(),
               category: editCategory.trim() || 'General',
+              startDate: editStartDate,
               dueDate: editDueDate,
               priority: editPriority,
               tags: updatedTags,
@@ -318,6 +335,11 @@ export default function TaskManager() {
           />
           <input
             type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <input
+            type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
@@ -442,6 +464,11 @@ export default function TaskManager() {
                       />
                       <input
                         type="date"
+                        value={editStartDate}
+                        onChange={(e) => setEditStartDate(e.target.value)}
+                      />
+                      <input
+                        type="date"
                         value={editDueDate}
                         onChange={(e) => setEditDueDate(e.target.value)}
                       />
@@ -471,6 +498,11 @@ export default function TaskManager() {
                       <span className={`task-pill priority-${task.priority}`}>
                         {PRIORITY_LABELS[task.priority]}
                       </span>
+                      {task.startDate && (
+                        <span className="task-pill">
+                          Inicio: {formatDate(task.startDate)}
+                        </span>
+                      )}
                       {task.dueDate && (
                         <span
                           className={`task-pill ${
