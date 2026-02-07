@@ -24,9 +24,17 @@ const PRIORITY_LABELS: Record<Priority, string> = {
   baja: 'Baja',
 };
 
+const parseDateInput = (value: string) => {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
 const formatDate = (value: string) => {
   if (!value) return '';
-  const date = new Date(value);
+  const date = value.includes('T') ? new Date(value) : parseDateInput(value);
+  if (!date) return '';
   return date.toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'short',
@@ -254,8 +262,11 @@ export default function TaskManager() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const isOverdue = (task: Task) =>
-    Boolean(task.dueDate) && new Date(task.dueDate) < today && !task.completed;
+  const isOverdue = (task: Task) => {
+    if (!task.dueDate || task.completed) return false;
+    const dueDate = parseDateInput(task.dueDate);
+    return Boolean(dueDate && dueDate < today);
+  };
 
   const categories = Array.from(
     new Set(['General', ...tasks.map((task) => task.category).filter(Boolean)])
